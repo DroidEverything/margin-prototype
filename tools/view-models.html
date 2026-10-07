@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARGIN — Local Model Viewer (offline, vendored only)</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#04070d;color:#d7e3f4;font:14px/1.5 system-ui,sans-serif;display:flex;height:100vh}
+  #side{width:340px;min-width:280px;border-right:1px solid #1c2a3a;overflow:auto;padding:12px}
+  #side h1{font-size:15px;margin:0 0 4px}
+  #side p.hint{font-size:12px;color:#8fa3bd;margin:0 0 10px}
+  #list{display:flex;flex-direction:column;gap:6px}
+  button.item{text-align:left;background:#0a1220;border:1px solid #1c2a3a;color:#d7e3f4;border-radius:8px;padding:8px 10px;cursor:pointer}
+  button.item.on{border-color:#1f8f5f;background:#0b1a14}
+  button.item small{display:block;color:#8fa3bd;font-size:11.5px}
+  #main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #bar{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #1c2a3a;flex-wrap:wrap}
+  #bar .tag{font-size:11px;border:1px solid #1c2a3a;border-radius:20px;padding:2px 10px;color:#8fa3bd}
+  #view{flex:1;position:relative;min-height:0}
+  canvas{display:block;width:100%;height:100%}
+  #meta{padding:10px 12px;border-top:1px solid #1c2a3a;font-size:12.5px;color:#a9bccd;max-height:32%;overflow:auto}
+  #meta b{color:#e6f0ff}
+  label.chk{font-size:12.5px;color:#a9bccd;display:flex;gap:6px;align-items:center}
+  #err{padding:8px 12px;color:#ff9a9a;font-size:12.5px;display:none}
+</style>
+<script type="importmap">
+{"imports":{"three":"../vendor/three.module.min.js","three/addons/":"../vendor/addons/"}}
+</script>
+</head>
+<body>
+<aside id="side">
+  <h1>Local models — <span id="count"></span></h1>
+  <p class="hint">Vendored static only (<code>models/</code>). No network. If opened via <code>file://</code>, ES-module GLB loading is blocked by the browser — serve over http: <code>python -m http.server</code> in repo root, then open <code>/tools/view-models.html</code>.</p>
+  <div id="list"></div>
+</aside>
+<div id="main">
+  <div id="bar">
+    <strong id="name">—</strong>
+    <span class="tag" id="src">—</span>
+    <span class="tag" id="size">—</span>
+    <span class="tag" id="use">—</span>
+    <label class="chk"><input type="checkbox" id="wire"> wireframe</label>
+    <label class="chk"><input type="checkbox" id="spin" checked> rotate</label>
+    <button class="item" id="asm1" style="cursor:pointer">assemble small</button>
+    <button class="item" id="asm2" style="cursor:pointer">assemble medium</button>
+    <button class="item" id="asm3" style="cursor:pointer">assemble large</button>
+  </div>
+  <div id="err"></div>
+  <div id="view"></div>
+  <div id="meta">Select a model on the left.</div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/DRACOLoader.js';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
+
+// Manifest mirrors plans_notes/MODEL_SOURCES.md + SOURCES.md §4/§5.
+// Sizes are the GitHub-API-verified byte sizes asserted by tools/fetch_nasa_models.py.
+const MODELS = [
+  {f:'../models/nasa/satellite_kit_body_1.glb', src:'NASA 3D Resources / Satellite Kit body 1', size:2916,  use:'bus ≤2 instr.'},
+  {f:'../models/nasa/satellite_kit_body_2.glb', src:'NASA 3D Resources / Satellite Kit body 2', size:5256,  use:'bus 3–5 instr.'},
+  {f:'../models/nasa/satellite_kit_body_3.glb', src:'NASA 3D Resources / Satellite Kit body 3', size:4944,  use:'bus 6+ instr.'},
+  {f:'../models/nasa/satellite_kit_wings_1.glb', src:'NASA 3D Resources / Satellite Kit wings 1', size:4860,  use:'power small (sa1/rtg1)'},
+  {f:'../models/nasa/satellite_kit_wings_2.glb', src:'NASA 3D Resources / Satellite Kit wings 2', size:8172,  use:'power medium (sa2/rtg2)'},
+  {f:'../models/nasa/satellite_kit_wings_3.glb', src:'NASA 3D Resources / Satellite Kit wings 3', size:14820, use:'power large (sa3/sa4)'},
+  {f:'../models/nasa/satellite_kit_radio_1.glb', src:'NASA 3D Resources / Satellite Kit radio 1', size:8436,  use:'comms LGA'},
+  {f:'../models/nasa/satellite_kit_radio_2.glb', src:'NASA 3D Resources / Satellite Kit radio 2', size:8752,  use:'comms MGA/2m HGA'},
+  {f:'../models/nasa/satellite_kit_radio_3.glb', src:'NASA 3D Resources / Satellite Kit radio 3', size:9012,  use:'comms 3m/Ka'},
+  {f:'../models/nasa/saturn_v.glb', src:'NASA 3D Resources / Saturn V (representative heavy lift)', size:927212, use:'retained vendored, superseded by per-LV procedural stacks'},
+  {f:'../models/margin_mission_bus.glb', src:'ORIGINAL MARGIN bus (not NASA — fallback only)', size:null, use:'kit-load failure fallback'},
+  {f:'../models/margin_procedural_kit.glb', src:'ORIGINAL MARGIN procedural parts (not NASA)', size:28352, use:'instrument glyphs + engine blocks palette (tools/export_procedural_glb.mjs)'},
+  {f:'../models/nasa/mro.glb', src:'NASA 3D Resources / Mars Reconnaissance Orbiter (MRO) (A)', size:2652460, use:'hero craft: Mars orbiter (CTX/HiRISE/CRISM heritage)'},
+  {f:'../models/nasa/voyager.glb', src:'NASA 3D Resources / Voyager Probe (A)', size:285936, use:'hero craft: outer-system probe'},
+  {f:'../models/nasa/juno.glb', src:'NASA 3D Resources / Juno (A)', size:8999028, use:'hero craft: Jupiter orbiter (MAG heritage)'},
+  {f:'../models/nasa/maven.glb', src:'NASA 3D Resources / MAVEN (A)', size:10465800, use:'hero craft: Mars orbiter (plasma heritage)'},
+  {f:'../models/nasa/messenger.glb', src:'NASA 3D Resources / MESSENGER', size:2673396, use:'hero craft: Mercury orbiter (GRNS heritage)'},
+  {f:'../models/nasa/lro.glb', src:'NASA 3D Resources / Lunar Reconnaissance Orbiter (A)', size:654500, use:'hero craft: lunar orbiter (LOLA heritage)'},
+  {f:'../models/nasa/osiris_rex.glb', src:'NASA 3D Resources / OSIRIS-REx', size:1281308, use:'hero craft: sample-return probe (OVIRS/TAGSAM heritage)'},
+  {f:'../models/nasa/saturn_v_stack.glb', src:'NASA Science 3D Resources printable STLs, assembled (tools/assemble_saturn.py)', size:2895532, use:'Saturn V stack, verified 110.64 m boundaries / representative interiors'},
+];
+// Non-GLB vendored assets shown as metadata only.
+  {f:'../assets/margin-mission-bus-preview.png', src:'ORIGINAL MARGIN schematic (not NASA)', use:'no-WebGL fallback (drawBay)'},
+];
+
+const list = document.getElementById('list');
+document.getElementById('count').textContent = MODELS.length + ' GLB + ' + META_ONLY.length + ' meta';
+const nameEl = document.getElementById('name'), srcEl = document.getElementById('src'),
+      sizeEl = document.getElementById('size'), useEl = document.getElementById('use'),
+      metaEl = document.getElementById('meta'), errEl = document.getElementById('err');
+
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1, 1.5));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.getElementById('view').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 16/9, 0.01, 500);
+camera.position.set(3.2, 1.8, 4.2);
+scene.add(new THREE.HemisphereLight(0x9fc0ff, 0x0a0f18, 0.7));
+const key = new THREE.DirectionalLight(0xfff2df, 1.2); key.position.set(3,4,2); scene.add(key);
+const rim = new THREE.DirectionalLight(0x6fa8ff, 0.55); rim.position.set(-4,-1,-3); scene.add(rim);
+const grid = new THREE.GridHelper(6, 12, 0x1c2a3a, 0x111c2a); scene.add(grid);
+// Kit parts are centimetre-scale (0.01 node scale) and wings carry an
+// ~8-unit mount offset by design (they assemble onto the body at the shared
+// origin in js/view3d.js). So: fit camera + grid to each model's bbox.
+function fitTo(obj){
+  const box = new THREE.Box3().setFromObject(obj);
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const len = Math.max(s.length(), 1e-4);
+  controls.target.copy(c);
+  const d = Math.max(len * 2.2, 0.05);
+  camera.position.copy(c).add(new THREE.Vector3(d*0.55, d*0.32, d*0.72));
+  camera.near = Math.max(len / 1000, 1e-5); camera.far = Math.max(len * 100, 50);
+  camera.updateProjectionMatrix();
+  controls.minDistance = len * 0.1; controls.maxDistance = len * 20 + 10;
+  scene.remove(grid);
+  const gs = Math.max(len * 4, 0.1);
+  const ng = new THREE.GridHelper(gs, 12, 0x1c2a3a, 0x111c2a);
+  scene.add(ng);
+  // keep a handle so repeated fits don't leak grids
+  fitTo._g = ng;
+  if (fitTo._prev && fitTo._prev !== ng) scene.remove(fitTo._prev);
+  fitTo._prev = ng;
+  return {c, s, len};
+}
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.autoRotate = true;
+function resize(){
+  const v = document.getElementById('view');
+  const w = Math.max(1, v.clientWidth), h = Math.max(1, v.clientHeight);
+  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+(function tick(){ requestAnimationFrame(tick); controls.update(); renderer.render(scene, camera); })();
+
+document.getElementById('spin').onchange = e => controls.autoRotate = e.target.checked;
+document.getElementById('wire').onchange = e => {
+  scene.traverse(o => { if (o.isMesh) o.material.wireframe = e.target.checked; });
+};
+
+let current = null, activeBtn = null;
+const loader = new GLTFLoader();
+// All 9 Satellite Kit GLBs use KHR_draco_mesh_compression (Saturn V does not).
+// Decoder is vendored static (three r160, vendor/draco/) — still fully offline.
+const draco = new DRACOLoader();
+draco.setDecoderPath('../vendor/draco/');
+loader.setDRACOLoader(draco);
+function showErr(m){ errEl.style.display = m ? 'block' : 'none'; errEl.textContent = m || ''; }
+if (location.protocol === 'file:') showErr('file:// detected: module + GLB fetch will likely fail. Serve over http instead.');
+
+function select(m, btn){
+  if (activeBtn) activeBtn.classList.remove('on');
+  activeBtn = btn; if (btn) btn.classList.add('on');
+  nameEl.textContent = m.f.split('/').pop();
+  srcEl.textContent = m.src;
+  sizeEl.textContent = m.size ? m.size.toLocaleString('en-US') + ' B' : 'size n/a';
+  useEl.textContent = m.use;
+  if (m.meta){
+    if (current){ scene.remove(current); current = null; }
+    metaEl.innerHTML = `<b>${m.f}</b><br>Metadata-only entry (no vendored loader). Source: ${m.src}. Use: ${m.use}.`;
+    resize(); return;
+  }
+  showErr('');
+  metaEl.textContent = 'Loading ' + m.f + ' …';
+  loader.load(m.f, gltf => {
+    if (current) scene.remove(current);
+    current = gltf.scene;
+    scene.add(current);
+    const { s } = fitTo(current);
+    let meshes = 0, tris = 0;
+    current.traverse(o => { if (o.isMesh){ meshes++; try{ tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count)/3; }catch(e){} } });
+    metaEl.innerHTML = `<b>${m.f}</b> — ${meshes} mesh(es), ~${Math.round(tris).toLocaleString('en-US')} tris.<br>` +
+      `BBox ${s.x.toFixed(3)} × ${s.y.toFixed(3)} × ${s.z.toFixed(3)} units. Source: ${m.src}. Use: ${m.use}.` +
+      `<br><span style="color:#8fa3bd">Note: wings/radio parts are mount-offset sub-assemblies — use the assemble buttons above to see them as the game renders them (body+wings+radio at shared origin).</span>`;
+    resize();
+  }, undefined, err => {
+    metaEl.innerHTML = `<b>${m.f}</b> — load failed: ${(err && err.message) || err}. ` +
+      (location.protocol === 'file:' ? 'Serve over http.' : 'Check path / vendor addons.');
+  });
+  resize();
+}
+MODELS.forEach(m => {
+  const b = document.createElement('button');
+  b.className = 'item';
+  b.innerHTML = `${m.f.split('/').pop()}<small>${m.use} · ${m.size ? m.size.toLocaleString('en-US')+' B' : 'n/a'}</small>`;
+  b.onclick = () => select(m, b);
+  list.appendChild(b);
+  m.btn = b;
+});
+META_ONLY.forEach(m => {
+  const b = document.createElement('button');
+  b.className = 'item';
+  b.innerHTML = `${m.f.split('/').pop()}<small>metadata only · ${m.use}</small>`;
+  b.onclick = () => select({...m, meta:true}, b);
+  list.appendChild(b);
+});
+resize();
+if (MODELS[0]) select(MODELS[0], MODELS[0].btn);
+
+// Assembled previews — exactly what js/view3d.js compose() renders in-game:
+// body + wings + radio added at the shared origin (offsets are mounts, not bugs).
+function assemble(bi, wi, ri, label){
+  showErr('');
+  nameEl.textContent = label; srcEl.textContent = 'NASA Satellite Kit assembly';
+  sizeEl.textContent = `body ${bi+1} + wings ${wi+1} + radio ${ri+1}`;
+  useEl.textContent = 'in-game craft preview';
+  metaEl.textContent = 'Loading assembly …';
+  const urls = [
+    MODELS[bi].f,
+    MODELS[3+wi].f,
+    MODELS[6+ri].f,
+  ];
+  Promise.all(urls.map(u => new Promise((res, rej) => loader.load(u, res, undefined, rej))))
+    .then(gltfs => {
+      if (current) scene.remove(current);
+      const craft = new THREE.Group();
+      gltfs.forEach(g => craft.add(g.scene));
+      current = craft; scene.add(craft);
+      const { s } = fitTo(craft);
+      metaEl.innerHTML = `<b>${label}</b> — body ${bi+1} + wings ${wi+1} + radio ${ri+1} at shared origin.<br>` +
+        `Assembly bbox ${s.x.toFixed(3)} × ${s.y.toFixed(3)} × ${s.z.toFixed(3)} units. This is what the build bay shows.`;
+      resize();
+    })
+    .catch(e => metaEl.textContent = 'Assembly load failed: ' + ((e && e.message) || e));
+}
+document.getElementById('asm1').onclick = () => assemble(0, 0, 0, 'craft — small (≤2 instr. / small power / LGA)');
+document.getElementById('asm2').onclick = () => assemble(1, 1, 1, 'craft — medium (3–5 instr. / medium power / MGA-2m)');
+document.getElementById('asm3').onclick = () => assemble(2, 2, 2, 'craft — large (6+ instr. / large power / 3m-Ka)');
+</script>
+</body>
+</html>

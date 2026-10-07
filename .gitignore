@@ -1,0 +1,50 @@
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# NASA Horizons ephemeral query cache (regenerable via tools/build_jpl_ephemeris.py)
+tools/horizons_cache/
+
+# Binary SPICE kernels (DE440, etc. - regenerable / downloaded via tools/build_de440.py)
+tools/kernels/
+*.bsp
+*.tls
+
+# Node & package manager logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & local configuration
+.env
+.env.local
+.env.*.local
+
+# Operating System & IDE files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+scratch_review/
+
+# Review-share: exclude all markdown except root SOURCES.md
+*.md
+!/SOURCES.md
+
+# Review-share: bundle contains an .md report, exclude it
+for_review_important_do_not_delete.zip
+
+# Review-share: local launcher, keep out of reviewer tree
+launch_margin.bat

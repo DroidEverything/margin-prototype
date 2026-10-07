@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARGIN — NASA Mission Control UI Style Guide</title>
+<style>
+:root{
+  --deep-space-black:#050A14;--panel-1:#070D17;--panel-2:#0A101B;--panel-3:#0D1522;
+  --hairline:#243143;--hairline-strong:#33445A;
+  --nasa-blue:#0B3D91;--blue-hi:#4B82D7;--nasa-red:#FC3D21;
+  --nominal:#65F2A5;--warning:#FFB000;--critical:#FC3D21;--titanium-gray:#8C96A3;
+  --text:#E7ECF2;--text-2:#A6B1BF;--text-3:#667384;
+  --sans:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono","IBM Plex Mono",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}html{background:var(--deep-space-black)}body{margin:0;color:var(--text);background:
+radial-gradient(circle at 50% 12%,rgba(11,61,145,.11),transparent 34%),
+radial-gradient(circle at 15% 90%,rgba(252,61,33,.025),transparent 30%),var(--deep-space-black);
+font:14px/1.6 var(--sans);min-height:100vh;padding:28px 24px 60px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.17;background-image:linear-gradient(rgba(11,61,145,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(11,61,145,.18) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 50% 40%,#000 10%,transparent 82%)}
+main{max-width:1220px;margin:0 auto}header{border:1px solid var(--hairline);background:linear-gradient(180deg,var(--panel-3),var(--panel-1));padding:22px 24px;box-shadow:0 0 28px rgba(11,61,145,.06);position:relative}header:before,header:after{content:"";position:absolute;width:12px;height:12px;border-color:var(--blue-hi);opacity:.75}header:before{top:-1px;left:-1px;border-left:1px solid;border-top:1px solid}header:after{bottom:-1px;right:-1px;border-right:1px solid;border-bottom:1px solid}
+.kicker,.code,label{font:10px/1.2 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}h1,h2,h3{font-family:var(--sans);margin:0;line-height:1.1}h1{font-size:42px;letter-spacing:.03em}h2{font-size:23px;margin-bottom:12px}h3{font-size:15px;letter-spacing:.05em}.lede{max-width:72ch;color:var(--text-2);margin:11px 0 0}.section{margin-top:18px;border:1px solid var(--hairline);background:linear-gradient(180deg,rgba(13,21,34,.96),rgba(7,13,23,.96));padding:18px;position:relative;box-shadow:0 0 22px rgba(11,61,145,.045)}.grid{display:grid;gap:12px}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.swatch{border:1px solid var(--hairline);background:var(--panel-2);min-height:105px;display:flex;flex-direction:column;justify-content:end}.swatch .color{height:54px}.swatch .meta{padding:9px 10px}.swatch .name{font:11px var(--mono);letter-spacing:.08em}.swatch .hex{font:10px var(--mono);color:var(--text-3);margin-top:2px}
+.type-demo{border:1px solid var(--hairline);padding:15px;background:#08101A}.type-display{font:800 34px/1.05 var(--sans);letter-spacing:.02em}.type-ui{font:500 15px/1.45 var(--sans)}.type-mono{font:500 17px/1.45 var(--mono);font-variant-numeric:tabular-nums}.caption{font:9px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-top:10px}
+.panel-demo{border:1px solid var(--hairline);background:linear-gradient(180deg,var(--panel-3),var(--panel-1));position:relative;overflow:hidden}.panel-demo:before{content:"";position:absolute;inset:6px;pointer-events:none;opacity:.08;background:repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 1px,transparent 1px 4px)}.panel-head{padding:9px 11px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;position:relative;z-index:1}.panel-body{padding:14px;position:relative;z-index:1}.bracket{position:absolute;width:10px;height:10px;border-color:var(--blue-hi)}.bracket.tl{left:-1px;top:-1px;border-left:1px solid;border-top:1px solid}.bracket.br{right:-1px;bottom:-1px;border-right:1px solid;border-bottom:1px solid}.glow{box-shadow:0 0 24px rgba(11,61,145,.12)}
+.btns{display:flex;gap:9px;flex-wrap:wrap}.btn{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:9px 15px;border:1px solid var(--hairline-strong);background:rgba(255,255,255,.015);color:var(--text)}.nominal{border-color:var(--nominal);color:var(--nominal);background:rgba(101,242,165,.06)}.warning{border-color:var(--warning);color:var(--warning);background:rgba(255,176,0,.05)}.critical{border-color:var(--critical);color:var(--critical);background:rgba(252,61,33,.04)}.disabled{opacity:.28}
+.status-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.status-tag{font:700 9px var(--mono);letter-spacing:.12em;padding:3px 6px;border:1px solid}.status-tag.nominal{color:var(--nominal);border-color:rgba(101,242,165,.44);background:rgba(101,242,165,.05)}.status-tag.warning{color:var(--warning);border-color:rgba(255,176,0,.44);background:rgba(255,176,0,.05)}.status-tag.critical{color:var(--critical);border-color:rgba(252,61,33,.45);background:rgba(252,61,33,.04)}
+.rails{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--hairline)}.rail{background:#080F19;padding:10px 11px}.rail-top{display:flex;justify-content:space-between;font:9px var(--mono);letter-spacing:.13em;color:var(--text-2)}.rail-val{font:15px var(--mono);margin:4px 0 6px;font-variant-numeric:tabular-nums}.bar{height:3px;background:#141E2B}.bar i{display:block;width:78%;height:100%;background:var(--nominal)}.bar.warn i{background:var(--warning);width:88%}.bar.crit i{background:var(--critical);width:100%}
+.cascade{display:grid;gap:4px}.cascade-line{font:10.5px var(--mono);border:1px solid var(--hairline);padding:7px 9px;background:#060C16;display:flex;gap:12px;align-items:baseline}.cascade-line .k{color:var(--text-3);min-width:75px}.cascade-line .v{color:var(--nominal)}.cascade-line.warn .v{color:var(--warning)}.cascade-line.crit .v{color:var(--critical)}
+.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{padding:8px 9px;border-bottom:1px solid var(--hairline);text-align:left}.table th{font:9px var(--mono);letter-spacing:.12em;color:var(--text-3);text-transform:uppercase}.table td.mono{font-family:var(--mono)}
+.codebox{background:#050B14;border:1px solid var(--hairline);padding:12px;overflow:auto;color:#C8D2DE;font:10.5px/1.55 var(--mono)}
+.model{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;align-items:stretch}.model img{width:100%;height:100%;min-height:260px;object-fit:cover;border:1px solid var(--hairline);background:#040A13}.model .meta-panel{border:1px solid var(--hairline);background:#08101A;padding:14px}.link{color:var(--blue-hi);text-decoration:none}.note{color:var(--text-2)}.warnbox{border-left:2px solid var(--warning);padding:10px 12px;background:rgba(255,176,0,.05);color:var(--text-2)}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3,.model{grid-template-columns:1fr}.rails{grid-template-columns:1fr 1fr}.rails .rail:last-child{grid-column:1/-1}}@media(max-width:560px){body{padding:14px 10px 40px}h1{font-size:32px}.grid-4,.grid-2{grid-template-columns:1fr}.rails{grid-template-columns:1fr}.rails .rail:last-child{grid-column:auto}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="kicker">MARGIN / INDEPENDENT NASA SPACE APPS CHALLENGE PROTOTYPE</div>
+  <h1 style="margin-top:7px">MISSION CONTROL UI SYSTEM</h1>
+  <p class="lede">A restrained aerospace interface derived from NASA's documented visual language: precise typography, disciplined color, grids, hairlines, technical annotation, telemetry, and high-signal state treatment. This document is the reference contract for the frontend.</p>
+</header>
+
+<section class="section"><h2>01 / Core tokens</h2>
+<div class="grid grid-4">
+  <div class="swatch"><div class="color" style="background:#050A14"></div><div class="meta"><div class="name">DEEP SPACE BLACK</div><div class="hex">#050A14</div></div></div>
+  <div class="swatch"><div class="color" style="background:#0B3D91"></div><div class="meta"><div class="name">NASA BLUE</div><div class="hex">#0B3D91</div></div></div>
+  <div class="swatch"><div class="color" style="background:#FC3D21"></div><div class="meta"><div class="name">NASA RED</div><div class="hex">#FC3D21</div></div></div>
+  <div class="swatch"><div class="color" style="background:#8C96A3"></div><div class="meta"><div class="name">TITANIUM GRAY</div><div class="hex">#8C96A3 / PROJECT TOKEN</div></div></div>
+</div>
+<div class="grid grid-3" style="margin-top:12px">
+  <div class="swatch"><div class="color" style="background:#65F2A5"></div><div class="meta"><div class="name">NOMINAL</div><div class="hex">#65F2A5</div></div></div>
+  <div class="swatch"><div class="color" style="background:#FFB000"></div><div class="meta"><div class="name">WARNING</div><div class="hex">#FFB000</div></div></div>
+  <div class="swatch"><div class="color" style="background:#243143"></div><div class="meta"><div class="name">HAIRLINE</div><div class="hex">#243143</div></div></div>
+</div>
+<p class="note" style="margin:12px 0 0">NASA Blue and NASA Red are drawn from NASA's documented web/graphics palette. “Titanium Gray” is an MARGIN project token for aerospace-neutral surfaces, not a NASA trademarked color name.</p>
+</section>
+
+<section class="section"><h2>02 / Typography</h2><div class="grid grid-3">
+  <div class="type-demo"><div class="type-display">SYSTEM STATUS</div><div class="caption">Display / Helvetica / Inter</div></div>
+  <div class="type-demo"><div class="type-ui">Designing the mission means exposing the coupling between mass, power, data, cost, and schedule.</div><div class="caption">Body / Inter / Helvetica</div></div>
+  <div class="type-demo"><div class="type-mono">C3 12.4 km²/s²   TOF 211 d   MARGIN 18.2%</div><div class="caption">Telemetry / JetBrains Mono / IBM Plex Mono</div></div>
+</div></section>
+
+<section class="section"><h2>03 / HUD panels</h2><div class="grid grid-2">
+  <div class="panel-demo glow"><span class="bracket tl"></span><span class="bracket br"></span><div class="panel-head"><span class="kicker">POWER SUBSYSTEM</span><span class="code">PWR-02</span></div><div class="panel-body"><h3>END-OF-LIFE GENERATION</h3><div class="type-mono" style="margin-top:8px">412 W <span style="font-size:11px;color:var(--text-3)">/ 470 W</span></div><div class="bar warn" style="margin-top:8px"><i></i></div></div></div>
+  <div class="panel-demo"><span class="bracket tl"></span><span class="bracket br"></span><div class="panel-head"><span class="kicker">PROVENANCE</span><span class="code">SRC-14</span></div><div class="panel-body"><div class="note">MMRTG class power model</div><div class="codebox" style="margin-top:10px">Source: NASA Radioisotope Power Systems\nRetrieved: 2026-09-19\nSimplification: exponential decay proxy</div></div></div>
+</div></section>
+
+<section class="section"><h2>04 / Mission states</h2><div class="btns">
+  <button class="btn nominal">COMMIT / NOMINAL</button><button class="btn warning">HOLD / WARNING</button><button class="btn critical">ABORT / CRITICAL</button><button class="btn disabled">LOCKED / DISABLED</button>
+</div><div class="status-row" style="margin-top:14px"><span class="status-tag nominal">NOMINAL</span><span class="status-tag warning">WARNING</span><span class="status-tag critical">CRITICAL</span><span class="kicker">Always pair state color with explicit text and a numeric condition.</span></div></section>
+
+<section class="section"><h2>05 / Persistent budget HUD</h2><div class="rails">
+  <div class="rail"><div class="rail-top"><span>MASS</span><span>NOMINAL</span></div><div class="rail-val">1,842 / 2,100 kg</div><div class="bar"><i></i></div></div>
+  <div class="rail"><div class="rail-top"><span>POWER</span><span style="color:var(--warning)">WARNING</span></div><div class="rail-val">412 / 470 W</div><div class="bar warn"><i></i></div></div>
+  <div class="rail"><div class="rail-top"><span>DATA</span><span>NOMINAL</span></div><div class="rail-val">2.10 / 3.40 Gb/d</div><div class="bar"><i></i></div></div>
+  <div class="rail"><div class="rail-top"><span>COST</span><span>NOMINAL</span></div><div class="rail-val">$841 / $900 M</div><div class="bar"><i></i></div></div>
+  <div class="rail"><div class="rail-top"><span>SCHEDULE</span><span style="color:var(--critical)">CRITICAL</span></div><div class="rail-val">74 / 72 mo</div><div class="bar crit"><i></i></div></div>
+</div><p class="note" style="margin:11px 0 0">This HUD stays visible through BUILD, LAUNCH, and OPERATE. Clicking a rail opens the contribution breakdown.</p></section>
+
+<section class="section"><h2>06 / The Cascade</h2><div class="cascade">
+  <div class="cascade-line"><span class="k">MASS</span><span class="v">+18.4 kg</span><span class="k">22% → 14%</span></div>
+  <div class="cascade-line warn"><span class="k">POWER</span><span class="v">+31 W</span><span class="k">18% → 9%</span></div>
+  <div class="cascade-line crit"><span class="k">DATA</span><span class="v">+2.1 Gb/sol</span><span class="k">DOWNLINK SATURATED</span></div>
+  <div class="cascade-line"><span class="k">COST</span><span class="v">+$41M</span><span class="k">FY26</span></div>
+  <div class="cascade-line warn"><span class="k">SCHEDULE</span><span class="v">+2 mo</span><span class="k">I&T</span></div>
+</div><p class="note" style="margin:11px 0 0">Use staggered, readable updates instead of decorative animation. The trade-off itself is the visual effect.</p></section>
+
+<section class="section"><h2>07 / Grid, spacing, and iconography</h2><table class="table"><thead><tr><th>Rule</th><th>Specification</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>Grid</td><td class="mono">64 px primary / 8 px micro</td><td>Technical alignment without visual noise.</td></tr>
+<tr><td>Panels</td><td class="mono">1 px hairline + 2 px radius + corner brackets</td><td>Reads as instrumentation, not consumer-card UI.</td></tr>
+<tr><td>Buttons</td><td class="mono">11 px mono / 0.14em tracking / uppercase</td><td>Mission-control affordance with compact footprint.</td></tr>
+<tr><td>Status</td><td class="mono">NOMINAL / WARNING / CRITICAL</td><td>Text + color; never color alone.</td></tr>
+<tr><td>Icons</td><td class="mono">geometric SVG/Canvas marks only</td><td>No emoji, mascot, cartoon, or novelty glyphs.</td></tr>
+<tr><td>Motion</td><td class="mono">120–400 ms / reduced-motion safe</td><td>Motion explains state change, not decoration.</td></tr>
+</tbody></table></section>
+
+<section class="section"><h2>08 / Model direction</h2><div class="model">
+  <img src="../assets/margin-mission-bus-preview.png" alt="Technical three-quarter preview of the MARGIN mission bus PBR model">
+  <div class="meta-panel"><div class="kicker">PBR / GLB / REV 01</div><h3 style="margin-top:7px">MARGIN Mission Bus</h3><p class="note">The current prototype uses a lightweight Canvas2D preview rendered from an original PBR GLB. The GLB is shipped separately in <span class="code">/models</span> so the future Three.js Build Bay can load the same asset without redesigning the interface.</p><p class="note">For drop-in real-world models, preferred repositories researched for this project include NASA 3D Resources, NASA's Sketchfab profile, and Smithsonian Open Access. Their source URLs and licensing notes are in <span class="code">MODEL_SOURCES.md</span>.</p><a class="link" href="MODEL_SOURCES.md">Open model source manifest</a></div>
+</div></section>
+
+<section class="section"><h2>09 / Implementation contract</h2><div class="codebox">&lt;link rel="stylesheet" href="styles/nasa-theme.css"&gt;\n\n&lt;button class="btn nominal"&gt;COMMIT / NOMINAL&lt;/button&gt;\n&lt;button class="btn warning"&gt;HOLD / WARNING&lt;/button&gt;\n&lt;button class="btn critical"&gt;ABORT / CRITICAL&lt;/button&gt;\n\n&lt;div class="panel"&gt;\n  &lt;span class="bracket tl"&gt;&lt;/span&gt;\n  &lt;span class="bracket br"&gt;&lt;/span&gt;\n  ...\n&lt;/div&gt;</div><p class="note" style="margin:10px 0 0">The production game is intentionally dependency-light. The stylesheet works with the current vanilla HTML prototype and also provides tokens for a future React/Tailwind implementation.</p></section>
+
+<section class="section"><h2>10 / Brand safety</h2><div class="warnbox">Do not place the NASA Meatball, Worm, or Seal in the MARGIN logo, title bar, or custom brand mark. The prototype uses its own MARGIN wordmark and an explicit “independent prototype” note. NASA's current Brand Guidelines say these identifiers are protected and may not be used to imply endorsement without permission.</div></section>
+</main>
+</body>
+</html>
